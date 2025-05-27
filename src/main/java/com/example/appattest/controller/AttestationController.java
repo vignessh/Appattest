@@ -57,8 +57,7 @@ public class AttestationController {
         byte[] assertion = Base64.getDecoder().decode(assertionB64);
 
         boolean ok = service.verifyAssertion(
-                keyId,
-                assertion,
+                assertion, keyId,
                 nonce
         );
         if (!ok) {

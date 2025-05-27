@@ -1,6 +1,7 @@
 package com.example.appattest.service;
 
 import co.nstant.in.cbor.CborDecoder;
+import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.*;
 import com.example.appattest.repository.ChallengeStore;
 import com.example.appattest.repository.KeyRegistry;
@@ -38,13 +39,11 @@ public class AssertionService {
             throw new IllegalArgumentException("Invalid or expired assertion challenge");
         }
         try {
-            byte[] obj = Base64.getDecoder().decode(assertionB64);
-            Map<DataItem, DataItem> map = (Map) new CborDecoder(
-                    new ByteArrayInputStream(obj)).decode().get(0);
+            var assertion = new Assertion(assertionB64);
 
-            byte[] signedData = ((ByteString) map.get(new UnicodeString("clientData"))).getBytes();
-            byte[] sigBytes = ((ByteString) map.get(new UnicodeString("signature"))).getBytes();
-            String reqKeyId = ((UnicodeString) map.get(new UnicodeString("keyId"))).getString();
+            byte[] signedData = assertion.signedData();
+            byte[] sigBytes = assertion.signatureBytes();
+            String reqKeyId = assertion.keyId();
 
             if (!keyId.equals(reqKeyId)) {
                 throw new IllegalArgumentException("keyId mismatch");
@@ -59,5 +58,27 @@ public class AssertionService {
         } catch (Exception e) {
             throw new RuntimeException("Assertion verification failed: " + e.getMessage(), e);
         }
+    }
+}
+
+class Assertion {
+    private final Map<DataItem, DataItem> structure;
+    public Assertion(String assertionBase64) throws IOException, CborException {
+        byte[] obj = Base64.getDecoder().decode(assertionBase64);
+        try (var stream = new ByteArrayInputStream(obj)) {
+            structure = (Map) new CborDecoder(stream).decode().getFirst();
+        }
+    }
+
+    public byte[] signedData() {
+        return ((ByteString) structure.get(new UnicodeString("clientData"))).getBytes();
+    }
+
+    public byte[] signatureBytes() {
+        return ((ByteString) structure.get(new UnicodeString("signature"))).getBytes();
+    }
+
+    public String keyId() {
+        return ((UnicodeString) structure.get(new UnicodeString("keyId"))).getString();
     }
 }

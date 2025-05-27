@@ -32,7 +32,7 @@ public class OrdersController {
         // 2. Verify App Attest assertion
         byte[] nonce     = Base64.getDecoder().decode(nonceB64);
         byte[] assertion = Base64.getDecoder().decode(assertionB64);
-        if (!attestService.verifyAssertion(keyId, assertion, nonce)) {
+        if (!attestService.verifyAssertion(assertion, keyId, nonce)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 

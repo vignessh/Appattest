@@ -52,7 +52,7 @@ public class AttestationService {
     }
 
     // Verify initial attestKey() attestation and register public key
-    public boolean verifyAndRegisterKey(byte[] attObj, String clientDataHashB64) {
+    public boolean verifyAndRegisterKey(String keyId, byte[] attObj, String clientDataHashB64) {
         try {
             byte[] expectedHash = registrationChallenges.get(keyId);
             if (expectedHash == null || !Arrays.equals(expectedHash, Base64.getDecoder().decode(clientDataHashB64))) {
@@ -65,7 +65,7 @@ public class AttestationService {
                 return false;
             }
             byte[] pubKeyBytes = claims.get(CBORObject.FromString("publicKey")).GetByteString();
-            registry.register(keyId, pubKeyBytes);
+            publicKeys.put(keyId, pubKeyBytes);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,7 +74,7 @@ public class AttestationService {
     }
 
     // Verify getAssertion() COSE_Sign1
-    public boolean verifyAssertion(String keyId, byte[] assertionCbor, byte[] clientChallenge) {
+    public boolean verifyAssertion(byte[] assertionCbor, String keyId, byte[] clientChallenge) {
         byte[] stored = assertionChallenges.get(keyId);
         if (stored == null || !Arrays.equals(stored, clientChallenge)) return false;
         assertionChallenges.remove(keyId);

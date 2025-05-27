@@ -29,7 +29,7 @@ public class AttestationInterceptor implements HandlerInterceptor {
 
         try {
             // Will throw exception if verification fails
-            // service.verifyAssertion(assertion, keyId, challenge);
+             service.verifyAssertion(assertion.getBytes(), keyId, challenge.getBytes());
             return true;
         } catch (Exception ex) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "App Attest verification failed: " + ex.getMessage());
